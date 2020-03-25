@@ -1,0 +1,180 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "networkSecurityGroups_DMZDefault_name": {
+            "defaultValue": "DMZDefault",
+            "type": "String"
+        },
+        "virtualNetworks_prdNetwork_name": {
+            "defaultValue": "prdNetwork",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "comments": "Generalized from resource: '/subscriptions/de2eff4b-4de8-49e8-b048-d7146015fd1b/resourceGroups/prdNetwork/providers/Microsoft.Network/networkSecurityGroups/DMZDefault'.",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[parameters('networkSecurityGroups_DMZDefault_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "northeurope",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "AllowHTTPfromInternet",
+                        "properties": {
+                            "description": "AllowHTTPfromInternet",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "80",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "10.1.1.100/32",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHTTPfromAppServer",
+                        "properties": {
+                            "description": "AllowHTTPfromAppServer",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "80",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "10.1.2.120/32",
+                            "destinationAddressPrefix": "10.1.1.100/32",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowRDPInbound",
+                        "properties": {
+                            "description": "AllowRDPInbound",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "3389",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "10.1.1.0/24",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "DENYInboundfromVNET",
+                        "properties": {
+                            "description": "DENYInboundfromVNET",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "10.1.1.0/24",
+                            "access": "Deny",
+                            "priority": 4096,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHTTPfromWebsite",
+                        "properties": {
+                            "description": "AllowHTTPfromWebsite",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "80",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "10.1.1.100/32",
+                            "destinationAddressPrefix": "Internet",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "AllowHTTPtoAppServer",
+                        "properties": {
+                            "description": "AllowHTTPtoAppServer",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "80",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "10.1.1.100/32",
+                            "destinationAddressPrefix": "10.1.2.120/32",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "AllowRDPOutBound",
+                        "properties": {
+                            "description": "AllowRDPOutBound",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "3389",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "10.1.1.0/24",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "DENYOutboundtoVNET",
+                        "properties": {
+                            "description": "DENYOutboundtoVNET",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "10.1.1.0/24",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Deny",
+                            "priority": 4096,
+                            "direction": "Outbound"
+                        }
+                    }
+                ]
+            },
+            "resources": [],
+            "dependsOn": []
+        },
+        {
+            "comments": "Generalized from resource: '/subscriptions/de2eff4b-4de8-49e8-b048-d7146015fd1b/resourceGroups/prdNetwork/providers/Microsoft.Network/virtualNetworks/prdNetwork'.",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworks_prdNetwork_name')]",
+            "apiVersion": "2016-03-30",
+            "location": "northeurope",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.1.0.0/16"
+                    ]
+                },
+                "dhcpOptions": {
+                    "dnsServers": []
+                },
+                "subnets": [
+                    {
+                        "name": "DMZ",
+                        "properties": {
+                            "addressPrefix": "10.1.1.0/24",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_DMZDefault_name'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "LAN",
+                        "properties": {
+                            "addressPrefix": "10.1.2.0/24"
+                        }
+                    }
+                ]
+            },
+            "resources": [],
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_DMZDefault_name'))]"
+            ]
+        }
+    ]
+}
